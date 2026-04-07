@@ -6,7 +6,7 @@
 <div class="admin-app" data-admin-app data-role="admin" data-initial-section="{{ initial_section or 'dashboard' }}">
     <div class="page-header">
         <div>
-            <h1 class="page-title">BookStore Administration</h1>
+            <h1 class="page-title">BookCollection Administration</h1>
             <p class="page-subtitle">Manage your digital library with precision and care.</p>
         </div>
         <div class="page-actions">
@@ -138,7 +138,7 @@
                             <td>
                                 <div class="table-cell">
                                     <strong>{{ user.username }}</strong>
-                                    <small>#{{ user.id }}</small>
+                                    <small>{{ user.id }}</small>
                                 </div>
                             </td>
                             <td>{{ user.email }}</td>
