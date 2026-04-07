@@ -1,7 +1,10 @@
 """Authentication API routes."""
 
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.core.auth_service import (
@@ -19,6 +22,7 @@ from app.schemas.user_schema import AuthTokenResponse, UserCreate, UserPublic, U
 
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
+logger = logging.getLogger(__name__)
 
 
 @router.post("/register", response_model=UserPublic)
@@ -34,6 +38,12 @@ def register_user_route(user_data: UserCreate, db: Session = Depends(get_db)):
         return new_user
     except (UsernameAlreadyExistsError, EmailAlreadyExistsError) as exc:
         raise HTTPException(status_code=400, detail=str(exc))
+    except SQLAlchemyError:
+        logger.exception("Database error while registering user.")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Authentication service unavailable.",
+        )
 
 
 @router.post("/login", response_model=AuthTokenResponse)
@@ -52,6 +62,12 @@ def login_user(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials",
+        )
+    except SQLAlchemyError:
+        logger.exception("Database error while authenticating user.")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Authentication service unavailable.",
         )
 
     access_token = create_token_for_user(db_user)

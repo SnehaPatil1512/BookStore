@@ -9,10 +9,16 @@ from app.core.config import SETTINGS
 
 DATABASE_URL = SETTINGS.database_url
 
-engine = create_engine(
-    DATABASE_URL,
-    connect_args={"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {},
-)
+if SETTINGS.environment == "production" and DATABASE_URL.startswith("sqlite"):
+    raise RuntimeError(
+        "Invalid production database configuration: SQLite is not allowed in production."
+    )
+
+engine_kwargs: dict = {"pool_pre_ping": True}
+if DATABASE_URL.startswith("sqlite"):
+    engine_kwargs["connect_args"] = {"check_same_thread": False}
+
+engine = create_engine(DATABASE_URL, **engine_kwargs)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

@@ -116,12 +116,28 @@ def update_user_account(
 
 def authenticate_user(db: Session, *, username: str, password: str) -> User:
     """Authenticate by username/email and password."""
-    identifier = username.strip()
+    identifier = (username or "").strip()
+    password_value = password or ""
+    if not identifier or not password_value:
+        raise InvalidCredentialsError("Invalid username or password.")
+
     db_user = user_crud.get_user_by_username(db, identifier)
     if db_user is None:
         db_user = user_crud.get_user_by_email(db, identifier.lower())
 
-    if not db_user or not security.verify_password(password, db_user.hashed_password):
+    if db_user is None:
+        raise InvalidCredentialsError("Invalid username or password.")
+
+    hashed_password = getattr(db_user, "hashed_password", None)
+    if not hashed_password:
+        raise InvalidCredentialsError("Invalid username or password.")
+
+    try:
+        is_valid = security.verify_password(password_value, hashed_password)
+    except Exception as exc:
+        raise InvalidCredentialsError("Invalid username or password.") from exc
+
+    if not is_valid:
         raise InvalidCredentialsError("Invalid username or password.")
 
     return db_user

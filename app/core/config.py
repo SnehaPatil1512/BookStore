@@ -33,6 +33,47 @@ def _as_int(value: str | None, default: int) -> int:
         return default
 
 
+def _detect_environment() -> str:
+    """Resolve runtime environment with safe defaults for local and Render."""
+    explicit = (os.getenv("APP_ENV") or "").strip().lower()
+    if explicit:
+        return explicit
+    if os.getenv("RENDER"):
+        return "production"
+    return "development"
+
+
+def _normalize_database_url(url: str) -> str:
+    """Normalize DATABASE_URL for SQLAlchemy compatibility."""
+    normalized = url.strip()
+    if normalized.startswith("postgres://"):
+        return normalized.replace("postgres://", "postgresql://", 1)
+    return normalized
+
+
+def _resolve_database_url(environment: str) -> str:
+    """Resolve database URL with strict production requirements."""
+    configured_url = (os.getenv("DATABASE_URL") or "").strip()
+
+    if not configured_url:
+        if environment == "production":
+            raise RuntimeError(
+                "DATABASE_URL is required in production. "
+                "Set Render PostgreSQL internal/external URL."
+            )
+        return "sqlite:///./test.db"
+
+    database_url = _normalize_database_url(configured_url)
+
+    if environment == "production" and database_url.startswith("sqlite"):
+        raise RuntimeError(
+            "SQLite is not allowed in production. "
+            "Configure DATABASE_URL to a PostgreSQL URL."
+        )
+
+    return database_url
+
+
 @dataclass(frozen=True)
 class Settings:
     """Runtime settings loaded from environment variables."""
@@ -53,17 +94,18 @@ class Settings:
     cors_origins: list[str]
 
 
+
 @lru_cache
 def get_settings() -> Settings:
     """Build immutable app settings from environment variables."""
-    environment = os.getenv("APP_ENV", "development").strip().lower()
+    environment = _detect_environment()
     openrouter_api_key = os.getenv("OPENROUTER_API_KEY") or os.getenv("OPENAI_API_KEY")
     return Settings(
         app_name=os.getenv("APP_NAME", "BookStore").strip() or "BookStore",
         environment=environment,
         log_level=(os.getenv("LOG_LEVEL", "INFO").strip() or "INFO").upper(),
         docs_enabled=_as_bool(os.getenv("DOCS_ENABLED"), default=environment != "production"),
-        database_url=os.getenv("DATABASE_URL", "sqlite:///./test.db"),
+        database_url=_resolve_database_url(environment),
         secret_key=os.getenv("SECRET_KEY", "change-me"),
         algorithm=os.getenv("ALGORITHM", "HS256"),
         access_token_expire_minutes=_as_int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"), 30),
