@@ -166,15 +166,35 @@
     const root = toastRoot();
     const toast = document.createElement("div");
     toast.className = `toast toast--${type}`;
+    toast.setAttribute("role", "status");
+    toast.setAttribute("aria-live", "polite");
     toast.innerHTML = `
       <span class="toast__icon"><i class="bi ${toastIcons[type] || toastIcons.info}"></i></span>
       <div class="toast__content">
         <p class="toast__title">${escapeHtml(title || toastTitles[type] || toastTitles.info)}</p>
         <p class="toast__message">${escapeHtml(message)}</p>
       </div>
+      <button class="toast__close" type="button" data-toast-close aria-label="Dismiss message">
+        <i class="bi bi-x"></i>
+      </button>
     `;
     root.appendChild(toast);
-    window.setTimeout(() => toast.remove(), 4200);
+
+    let timeoutId = window.setTimeout(() => toast.remove(), 7000);
+    const closeButton = toast.querySelector("[data-toast-close]");
+    if (closeButton) {
+      closeButton.addEventListener("click", () => {
+        window.clearTimeout(timeoutId);
+        toast.remove();
+      });
+    }
+
+    toast.addEventListener("mouseenter", () => {
+      window.clearTimeout(timeoutId);
+    });
+    toast.addEventListener("mouseleave", () => {
+      timeoutId = window.setTimeout(() => toast.remove(), 2500);
+    });
   };
 
   const parseRedirectFeedback = (url) => {
@@ -272,12 +292,14 @@
     });
 
     qsa("[data-modal-close]").forEach((button) => {
-      button.addEventListener("click", () => closeModal(button.closest(".modal")));
+      button.addEventListener("click", () =>
+        closeModal(button.closest(".app-modal"))
+      );
     });
 
     document.addEventListener("keydown", (event) => {
       if (event.key !== "Escape") return;
-      qsa(".modal.is-open").forEach(closeModal);
+      qsa(".app-modal.is-open").forEach(closeModal);
     });
   };
 
@@ -975,7 +997,7 @@
         showToast("Book added successfully.", "success");
       }
       form.reset();
-      closeModal(form.closest(".modal"));
+      closeModal(form.closest(".app-modal"));
       await fetchBooks();
     } catch (error) {
       showToast(error.message || "Could not add book.", "error");
@@ -1037,7 +1059,7 @@
       }
 
       showToast(feedback?.success || "Book updated successfully.", "success");
-      closeModal(form.closest(".modal"));
+      closeModal(form.closest(".app-modal"));
       await fetchBooks();
     } catch (error) {
       showToast(error.message || "Could not update book.", "error");
@@ -1420,7 +1442,7 @@
           const feedback = await createUser(userForm);
           showToast(feedback?.success || "User created.", "success");
         }
-        closeModal(userForm.closest(".modal"));
+        closeModal(userForm.closest(".app-modal"));
         await refreshAdminUsers();
       } catch (error) {
         showToast(error.message || "User action failed.", "error");
