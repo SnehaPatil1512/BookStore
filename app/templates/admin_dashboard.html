@@ -1,0 +1,378 @@
+{% extends "base.html" %}
+
+{% block head_extra %}{% endblock %}
+
+{% block admin_content %}
+<div class="admin-app" data-admin-app data-role="admin" data-initial-section="{{ initial_section or 'dashboard' }}">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">BookStore Administration</h1>
+            <p class="page-subtitle">Manage your digital library with precision and care.</p>
+        </div>
+        <div class="page-actions">
+            <a class="btn btn-outline-secondary btn-sm" href="/admin#dashboard" data-section-link="dashboard">
+                <i class="bi bi-speedometer2 me-1"></i>
+                Overview
+            </a>
+            <a class="btn btn-outline-secondary btn-sm" href="/admin#users" data-section-link="users">
+                <i class="bi bi-people me-1"></i>
+                Users
+            </a>
+            <a class="btn btn-outline-secondary btn-sm" href="/admin#books" data-section-link="books">
+                <i class="bi bi-book me-1"></i>
+                Books
+            </a>
+            <a class="btn btn-outline-secondary btn-sm" href="/admin#permissions" data-section-link="permissions">
+                <i class="bi bi-shield-lock me-1"></i>
+                Access
+            </a>
+        </div>
+    </div>
+
+    <section class="admin-section is-active" id="dashboard-section" data-section-panel="dashboard-section">
+        <div class="stats-grid">
+            <article class="stat-card">
+                <div class="stat-icon"><i class="bi bi-people"></i></div>
+                <div>
+                    <p class="stat-label">Total Users</p>
+                    <p class="stat-value" data-metric-admin-users>{{ users|length }}</p>
+                </div>
+            </article>
+            <article class="stat-card">
+                <div class="stat-icon"><i class="bi bi-book"></i></div>
+                <div>
+                    <p class="stat-label">Total Books</p>
+                    <p class="stat-value" data-metric-admin-books>{{ books|length }}</p>
+                </div>
+            </article>
+            <article class="stat-card">
+                <div class="stat-icon"><i class="bi bi-shield"></i></div>
+                <div>
+                    <p class="stat-label">Roles</p>
+                    <p class="stat-value">{{ roles|length }}</p>
+                </div>
+            </article>
+            <article class="stat-card">
+                <div class="stat-icon"><i class="bi bi-key"></i></div>
+                <div>
+                    <p class="stat-label">Permissions</p>
+                    <p class="stat-value">{{ permissions|length }}</p>
+                </div>
+            </article>
+        </div>
+
+        <div class="section-card mt-4">
+            <div class="section-card__header">
+                <div>
+                    <h2 class="section-title">Role Snapshot</h2>
+                    <p class="text-muted">Quick view of active roles in the system.</p>
+                </div>
+            </div>
+            <div class="role-snapshot">
+                <div class="role-chip">
+                    <span class="role-chip__label">Admins</span>
+                    <span class="role-chip__value">{{ admin_user_count }}</span>
+                </div>
+                <div class="role-chip">
+                    <span class="role-chip__label">Editors</span>
+                    <span class="role-chip__value">{{ editor_user_count }}</span>
+                </div>
+                <div class="role-chip">
+                    <span class="role-chip__label">Viewers</span>
+                    <span class="role-chip__value">{{ viewer_user_count }}</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="admin-section" id="books-section" data-section-panel="books-section">
+        <div class="section-card">
+            <div class="section-card__header">
+                <div>
+                    <h2 class="section-title">Books Management</h2>
+                    <p class="text-muted">Search, edit, and curate the entire catalog.</p>
+                </div>
+                <div class="toolbar">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input class="form-control book-search" type="search" placeholder="Search books" aria-label="Search books">
+                    </div>
+                    <select id="publisherFilter" class="form-select form-select-sm" aria-label="Filter by publisher">
+                        <option value="">All publishers</option>
+                    </select>
+                    <button class="btn btn-primary btn-sm" type="button" data-modal-open="addBookModal">
+                        <i class="bi bi-plus-circle me-1"></i>Add Book
+                    </button>
+                </div>
+            </div>
+            <div class="book-grid" data-books-grid data-actions="manage" data-book-scope="admin" data-can-update="true" data-can-delete="true"></div>
+        </div>
+
+    </section>
+
+    <section class="admin-section" id="users-section" data-section-panel="users-section">
+        <div class="section-card">
+            <div class="section-card__header">
+                <div>
+                    <h2 class="section-title">User Management</h2>
+                    <p class="text-muted">Create, update, and remove user accounts.</p>
+                </div>
+                <button class="btn btn-primary btn-sm" type="button" data-modal-open="userModal" data-action="user-add">
+                    <i class="bi bi-person-plus me-1"></i>Add User
+                </button>
+            </div>
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Books</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody data-users-body>
+                        {% for user in users %}
+                        <tr data-user-id="{{ user.id }}" data-user-name="{{ user.username }}" data-user-email="{{ user.email }}" data-user-role="{{ user.role_names|first|default('viewer') }}">
+                            <td>
+                                <div class="table-cell">
+                                    <strong>{{ user.username }}</strong>
+                                    <small>#{{ user.id }}</small>
+                                </div>
+                            </td>
+                            <td>{{ user.email }}</td>
+                            <td><span class="badge bg-light text-dark border">{{ user.role_names|first|default('viewer')|title }}</span></td>
+                            <td>{{ user.books|length }}</td>
+                            <td>
+                                <div class="table-actions">
+                                    <button class="btn btn-outline-secondary btn-sm" type="button" data-action="user-edit">Edit</button>
+                                    {% if current_user.id != user.id %}
+                                    <button class="btn btn-outline-danger btn-sm" type="button" data-action="user-delete">Delete</button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <section class="admin-section" id="permissions-section" data-section-panel="permissions-section">
+        <div class="section-card">
+            <div class="section-card__header">
+                <div>
+                    <h2 class="section-title">Roles & Permissions</h2>
+                    <p class="text-muted">Define access levels and keep roles aligned with your policies.</p>
+                </div>
+            </div>
+
+            <div class="access-grid">
+                <div class="access-card">
+                    <h3 class="access-card__title"><i class="bi bi-shield"></i> Roles</h3>
+                    <ul class="role-list">
+                        {% for role in roles %}
+                        <li>{{ role.name|title }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="access-card">
+                    <h3 class="access-card__title"><i class="bi bi-key"></i> Permissions</h3>
+                    <ul class="permission-list">
+                        {% for permission in permissions %}
+                        <li>{{ permission.name }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            <div class="permission-forms">
+                <form class="form-grid" id="createRoleForm" data-api-role-create>
+                    <div class="form-field">
+                        <span>Create Role</span>
+                        <input type="text" name="role_name" placeholder="Role name" required>
+                    </div>
+                    <button class="btn btn-outline-primary" type="submit">Create Role</button>
+                </form>
+
+                <form class="form-grid" id="createPermissionForm" data-api-permission-create>
+                    <div class="form-field">
+                        <span>Create Permission</span>
+                        <input type="text" name="permission_name" placeholder="Permission name" required>
+                    </div>
+                    <button class="btn btn-outline-primary" type="submit">Create Permission</button>
+                </form>
+
+                <form class="form-grid" id="assignRoleForm" data-api-assign-role>
+                    <div class="form-field">
+                        <span>Assign Role to User</span>
+                        <select name="user_id" required>
+                            <option value="">Select user</option>
+                            {% for user in users %}
+                            <option value="{{ user.id }}">{{ user.username }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <span>Role</span>
+                        <select name="role_id" required>
+                            <option value="">Select role</option>
+                            {% for role in roles %}
+                            <option value="{{ role.id }}">{{ role.name|title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button class="btn btn-outline-primary" type="submit">Assign Role</button>
+                </form>
+
+                <form class="form-grid" id="assignPermissionForm" data-api-assign-permission>
+                    <div class="form-field">
+                        <span>Assign Permission to Role</span>
+                        <select name="role_id" required>
+                            <option value="">Select role</option>
+                            {% for role in roles %}
+                            <option value="{{ role.id }}">{{ role.name|title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <span>Permission</span>
+                        <select name="permission_id" required>
+                            <option value="">Select permission</option>
+                            {% for permission in permissions %}
+                            <option value="{{ permission.id }}">{{ permission.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button class="btn btn-outline-primary" type="submit">Assign Permission</button>
+                </form>
+            </div>
+        </div>
+    </section>
+</div>
+
+<div id="addBookModal" class="modal" aria-hidden="true">
+    <div class="modal__backdrop" data-modal-close></div>
+    <div class="modal__dialog">
+        <div class="modal__content">
+            <div class="modal__header">
+                <h3>Add Book</h3>
+                <button class="modal__close" type="button" data-modal-close aria-label="Close">&times;</button>
+            </div>
+            <form id="addBookForm" data-book-scope="admin" enctype="multipart/form-data">
+                <div class="form-grid">
+                    <div class="form-field">
+                        <span>Owner</span>
+                        <select name="owner_id" required>
+                            <option value="">Select owner</option>
+                            {% for user in users %}
+                            <option value="{{ user.id }}">{{ user.username }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <span>Title</span>
+                        <input type="text" name="title" placeholder="Book title" required>
+                    </div>
+                    <div class="form-field">
+                        <span>Author</span>
+                        <input type="text" name="author" placeholder="Author name" required>
+                    </div>
+                    <div class="form-field">
+                        <span>Publisher</span>
+                        <input type="text" name="publisher" placeholder="Publisher" required>
+                    </div>
+                    <div class="form-field">
+                        <span>PDF (optional)</span>
+                        <input type="file" name="file" accept="application/pdf">
+                    </div>
+                </div>
+                <div class="modal__actions">
+                    <button class="btn btn-outline-secondary" type="button" data-modal-close>Cancel</button>
+                    <button class="btn btn-primary" type="submit">Save Book</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="editModal" class="modal" aria-hidden="true">
+    <div class="modal__backdrop" data-modal-close></div>
+    <div class="modal__dialog">
+        <div class="modal__content">
+            <div class="modal__header">
+                <h3>Edit Book</h3>
+                <button class="modal__close" type="button" data-modal-close aria-label="Close">&times;</button>
+            </div>
+            <form id="editBookForm" data-book-scope="admin" enctype="multipart/form-data">
+                <div class="form-grid">
+                    <div class="form-field">
+                        <span>Title</span>
+                        <input type="text" name="title" required>
+                    </div>
+                    <div class="form-field">
+                        <span>Author</span>
+                        <input type="text" name="author" required>
+                    </div>
+                    <div class="form-field">
+                        <span>Publisher</span>
+                        <input type="text" name="publisher" required>
+                    </div>
+                    <div class="form-field">
+                        <span>Replace PDF (optional)</span>
+                        <input type="file" name="file" accept="application/pdf">
+                        <small class="text-muted">Only PDF files are allowed.</small>
+                    </div>
+                </div>
+                <div class="modal__actions">
+                    <button class="btn btn-outline-secondary" type="button" data-modal-close>Cancel</button>
+                    <button class="btn btn-primary" type="submit">Update Book</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="userModal" class="modal" aria-hidden="true">
+    <div class="modal__backdrop" data-modal-close></div>
+    <div class="modal__dialog">
+        <div class="modal__content">
+            <div class="modal__header">
+                <h3>User Profile</h3>
+                <button class="modal__close" type="button" data-modal-close aria-label="Close">&times;</button>
+            </div>
+            <form id="userForm" data-user-form>
+                <div class="form-grid">
+                    <div class="form-field">
+                        <span>Username</span>
+                        <input type="text" name="username" placeholder="Username" required>
+                    </div>
+                    <div class="form-field">
+                        <span>Email</span>
+                        <input type="email" name="email" placeholder="Email" required>
+                    </div>
+                    <div class="form-field">
+                        <span>Role</span>
+                        <select name="role_name" required>
+                            <option value="">Select role</option>
+                            {% for role in roles %}
+                            <option value="{{ role.name }}">{{ role.name|title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <span>Password (optional)</span>
+                        <input type="password" name="password" placeholder="Set a password">
+                    </div>
+                </div>
+                <div class="modal__actions">
+                    <button class="btn btn-outline-secondary" type="button" data-modal-close>Cancel</button>
+                    <button class="btn btn-primary" type="submit">Save User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

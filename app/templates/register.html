@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-wrapper">
+        <div class="auth-panel auth-panel-left">
+            <div class="auth-panel-content">
+                <span class="auth-eyebrow">Create Workspace</span>
+                <div class="auth-logo">
+                    <i class="bi bi-book-half"></i>
+                </div>
+                <h1 class="auth-panel-title">BookStore</h1>
+                <p class="auth-panel-subtitle">Set up your account and start building your digital library in minutes.</p>
+
+                <div class="auth-features">
+                    <div class="feature-item">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Start free today</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>No credit card needed</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Full features access</span>
+                    </div>
+                </div>
+
+                <div class="auth-trust-strip" aria-hidden="true">
+                    <span class="auth-trust-chip"><i class="bi bi-shield-lock"></i>Secure Signup</span>
+                    <span class="auth-trust-chip"><i class="bi bi-journal-check"></i>Role Based</span>
+                    <span class="auth-trust-chip"><i class="bi bi-cloud-check"></i>Always Synced</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="auth-panel auth-panel-right">
+            <div class="auth-form-card">
+                <div class="auth-form-header">
+                    <h2>Create Account</h2>
+                    <p>Join BookStore and start managing your library</p>
+                </div>
+
+                <form method="post" action="/register" class="auth-form" data-api-register data-redirect="/">
+                    <div class="form-group">
+                        <label for="register-username" class="form-label">
+                            <i class="bi bi-person-circle"></i>
+                            <span>Username</span>
+                        </label>
+                        <input
+                            id="register-username"
+                            name="username"
+                            type="text"
+                            class="form-control"
+                            placeholder="Choose a username"
+                            value="{{ form_data.username if form_data else '' }}"
+                            autocomplete="username"
+                            autocapitalize="off"
+                            required
+                        >
+                        <small class="auth-input-hint">Pick a short, recognizable name for your profile.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="register-email" class="form-label">
+                            <i class="bi bi-envelope-fill"></i>
+                            <span>Email Address</span>
+                        </label>
+                        <input
+                            id="register-email"
+                            name="email"
+                            type="email"
+                            class="form-control"
+                            placeholder="Enter your email"
+                            value="{{ form_data.email if form_data else '' }}"
+                            autocomplete="email"
+                            required
+                        >
+                        <small class="auth-input-hint">This email can be used to sign in later.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="register-password" class="form-label">
+                            <i class="bi bi-lock-fill"></i>
+                            <span>Password</span>
+                        </label>
+                        <input
+                            id="register-password"
+                            name="password"
+                            type="password"
+                            class="form-control"
+                            placeholder="Create a password"
+                            autocomplete="new-password"
+                            required
+                        >
+                        <small class="auth-input-hint">Use a strong password with letters, numbers, and symbols.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirm-password" class="form-label">
+                            <i class="bi bi-shield-check"></i>
+                            <span>Confirm Password</span>
+                        </label>
+                        <input
+                            id="confirm-password"
+                            name="confirm_password"
+                            type="password"
+                            class="form-control"
+                            placeholder="Confirm your password"
+                            autocomplete="new-password"
+                            data-match-field="register-password"
+                            required
+                        >
+                        <small class="auth-input-hint">Re-enter the same password to confirm it.</small>
+                    </div>
+
+                    <div class="auth-meta-row">
+                        <span class="auth-security-note">
+                            <i class="bi bi-lock"></i>
+                            Your information is transmitted securely
+                        </span>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg btn-full">
+                        <i class="bi bi-person-plus"></i>
+                        Create Account
+                    </button>
+                </form>
+
+                <div class="auth-divider">
+                    <span>Already have an account?</span>
+                </div>
+
+                <a href="/" class="btn btn-secondary btn-lg btn-full">
+                    <i class="bi bi-box-arrow-in-right"></i>
+                    Sign In Instead
+                </a>
+
+                <p class="auth-footer-text">
+                    <i class="bi bi-info-circle"></i>
+                    After signup, your role permissions will control available actions.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block head_extra %}{% endblock %}
+
+{% block content %}
+{% set role_names = current_user.role_names if current_user and current_user.role_names else [] %}
+{% set is_admin = current_user and current_user.is_admin %}
+{% set is_editor = (not is_admin) and ('editor' in role_names or 'user' in role_names) %}
+{% set role_label = 'Editor' if is_editor else 'Viewer' %}
+<div class="user-app" data-user-app data-role="{{ role_label|lower }}" data-initial-section="{{ initial_section or 'books' }}" data-can-create="{{ 'true' if can_create_book else 'false' }}" data-can-update="{{ 'true' if can_update_book else 'false' }}" data-can-delete="{{ 'true' if can_delete_book else 'false' }}">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Welcome back, {{ current_user.username }}</h1>
+            <p class="page-subtitle">Curate your personal library and discover new reads.</p>
+        </div>
+        <div class="page-actions">
+            <a class="btn btn-outline-secondary btn-sm" href="/dashboard#books" data-user-section-link="books">
+                <i class="bi bi-journal-bookmark me-1"></i>
+                My Library
+            </a>
+            {% if can_create_book %}
+            <a class="btn btn-primary btn-sm" href="/dashboard#add-book" data-user-section-link="add-book">
+                <i class="bi bi-plus-circle me-1"></i>
+                Add Book
+            </a>
+            {% endif %}
+            <a class="btn btn-outline-secondary btn-sm" href="/dashboard#summary" data-user-section-link="summary">
+                <i class="bi bi-stars me-1"></i>
+                Summaries
+            </a>
+        </div>
+    </div>
+
+    <section class="user-section is-active" id="books-section" data-user-section-panel="books-section">
+        <div class="stats-grid">
+            <article class="stat-card">
+                <div class="stat-icon"><i class="bi bi-journal-bookmark"></i></div>
+                <div>
+                    <p class="stat-label">Books</p>
+                    <p class="stat-value" data-metric-user-books>{{ books|length }}</p>
+                </div>
+            </article>
+            <article class="stat-card">
+                <div class="stat-icon"><i class="bi bi-person"></i></div>
+                <div>
+                    <p class="stat-label">Authors</p>
+                    <p class="stat-value" data-metric-user-authors>{{ unique_author_count }}</p>
+                </div>
+            </article>
+            <article class="stat-card">
+                <div class="stat-icon"><i class="bi bi-building"></i></div>
+                <div>
+                    <p class="stat-label">Publishers</p>
+                    <p class="stat-value" data-metric-user-publishers>{{ unique_publisher_count }}</p>
+                </div>
+            </article>
+            <article class="stat-card">
+                <div class="stat-icon"><i class="bi bi-shield-check"></i></div>
+                <div>
+                    <p class="stat-label">Permissions</p>
+                    <p class="stat-value">{{ permission_count }}</p>
+                </div>
+            </article>
+        </div>
+
+        <div class="section-card mt-4">
+            <div class="section-card__header">
+                <div>
+                    <h2 class="section-title">My Library</h2>
+                    <p class="text-muted">All books you currently manage.</p>
+                </div>
+                <div class="toolbar">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input class="form-control book-search" type="search" placeholder="Search books" aria-label="Search books">
+                    </div>
+                    <select id="publisherFilter" class="form-select form-select-sm" aria-label="Filter by publisher">
+                        <option value="">All publishers</option>
+                    </select>
+                </div>
+            </div>
+            <div class="book-grid" data-books-grid data-actions="{{ 'manage' if can_update_book or can_delete_book else 'view' }}" data-book-scope="user" data-can-update="{{ 'true' if can_update_book else 'false' }}" data-can-delete="{{ 'true' if can_delete_book else 'false' }}"></div>
+        </div>
+    </section>
+
+    {% if can_create_book %}
+    <section class="user-section" id="add-book-section" data-user-section-panel="add-book-section">
+        <div class="section-card">
+            <div class="section-card__header">
+                <div>
+                    <h2 class="section-title">Add a Book</h2>
+                    <p class="text-muted">Upload a PDF or create a metadata-only entry.</p>
+                </div>
+            </div>
+            <form id="addBookForm" data-book-scope="user" enctype="multipart/form-data">
+                <div class="form-grid">
+                    <div class="form-field">
+                        <span>Title</span>
+                        <input type="text" name="title" placeholder="Book title" required>
+                    </div>
+                    <div class="form-field">
+                        <span>Author</span>
+                        <input type="text" name="author" placeholder="Author name" required>
+                    </div>
+                    <div class="form-field">
+                        <span>Publisher</span>
+                        <input type="text" name="publisher" placeholder="Publisher" required>
+                    </div>
+                    <div class="form-field">
+                        <span>PDF (optional)</span>
+                        <input type="file" name="file" accept="application/pdf">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-primary" type="submit">Add Book</button>
+                </div>
+            </form>
+        </div>
+    </section>
+    {% endif %}
+
+    <section class="user-section" id="summary-section" data-user-section-panel="summary-section">
+        <div class="section-card">
+            <div class="section-card__header">
+                <div>
+                    <h2 class="section-title">AI Summaries</h2>
+                    <p class="text-muted">Generate short summaries for your books.</p>
+                </div>
+            </div>
+            <form id="summaryBookForm" class="form-grid">
+                <div class="form-field">
+                    <span>Select Book</span>
+                    <select id="summaryBookSelect" name="book_id" required>
+                        <option value="">Choose a book</option>
+                    </select>
+                </div>
+                <button class="btn btn-outline-primary" type="submit">Generate Summary</button>
+            </form>
+
+            <div class="summary-output-card mt-4">
+                <div class="summary-output-card__header">
+                    <div>
+                        <h3 class="section-title">Latest Summary</h3>
+                        <p class="text-muted">Summaries appear here after generation.</p>
+                    </div>
+                    <span class="badge bg-light text-dark" data-summary-status>Idle</span>
+                </div>
+                <p class="summary-output" data-summary-output>Pick a book to generate its summary.</p>
+            </div>
+        </div>
+    </section>
+</div>
+
+<div id="editModal" class="modal" aria-hidden="true">
+    <div class="modal__backdrop" data-modal-close></div>
+    <div class="modal__dialog">
+        <div class="modal__content">
+            <div class="modal__header">
+                <h3>Edit Book</h3>
+                <button class="modal__close" type="button" data-modal-close aria-label="Close">&times;</button>
+            </div>
+            <form id="editBookForm" data-book-scope="user" enctype="multipart/form-data">
+                <div class="form-grid">
+                    <div class="form-field">
+                        <span>Title</span>
+                        <input type="text" name="title" required>
+                    </div>
+                    <div class="form-field">
+                        <span>Author</span>
+                        <input type="text" name="author" required>
+                    </div>
+                    <div class="form-field">
+                        <span>Publisher</span>
+                        <input type="text" name="publisher" required>
+                    </div>
+                    <div class="form-field">
+                        <span>Replace PDF (optional)</span>
+                        <input type="file" name="file" accept="application/pdf">
+                        <small class="text-muted">If your role allows, selecting a PDF will replace the existing one.</small>
+                    </div>
+                </div>
+                <div class="modal__actions">
+                    <button class="btn btn-outline-secondary" type="button" data-modal-close>Cancel</button>
+                    <button class="btn btn-primary" type="submit">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title or "BookStore - Your Digital Library" }} | BookStore</title>
+    <meta name="description" content="Discover, manage, and read your favorite books in our professional digital library.">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1QjNks5OOt6ANgS6ySx1x8cbWoZ+elIL8VnNqTQ87xknKJ5CBR1TG5G7fYv1vFw6" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/styles.css') }}?v=16">
+    {% block head_extra %}{% endblock %}
+</head>
+<body class="{{ body_class or '' }}">
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    {% set is_dashboard = admin_layout or app_layout %}
+
+    {% if is_dashboard %}
+        {% set role_label = dashboard_role_label or 'Member' %}
+        <div class="dashboard-layout">
+            <nav class="dashboard-topbar navbar navbar-expand-lg bg-white border-bottom shadow-sm sticky-top">
+                <div class="container-fluid dashboard-topbar__bar px-3 px-lg-4">
+                    <div class="dashboard-topbar__left">
+                        <button class="btn btn-outline-secondary d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#dashboardSidebar" aria-controls="dashboardSidebar" aria-label="Toggle navigation">
+                            <i class="bi bi-list"></i>
+                        </button>
+                        <a class="navbar-brand d-flex align-items-center gap-2" href="{{ '/admin' if current_user and current_user.is_admin else ('/dashboard' if current_user else '/') }}">
+                            <span class="d-inline-flex align-items-center justify-content-center rounded-3 bg-primary text-white px-2 py-1">
+                                <i class="bi bi-book-half"></i>
+                            </span>
+                            <span class="fw-semibold">BookStore</span>
+                        </a>
+                    </div>
+
+                    <div class="dashboard-topbar__right">
+                        {% if current_user %}
+                            <div class="dashboard-topbar__user small text-muted">
+                                <i class="bi bi-person-circle"></i>
+                                <span class="dashboard-topbar__user-name fw-semibold text-dark">{{ current_user.username }}</span>
+                                <span class="badge bg-light text-dark border">{{ role_label }}</span>
+                            </div>
+                            <form method="post" action="/logout" class="dashboard-topbar__logout-form mb-0">
+                                <button class="btn btn-outline-danger btn-sm" type="submit">
+                                    <i class="bi bi-box-arrow-right me-1"></i>
+                                    Logout
+                                </button>
+                            </form>
+                        {% else %}
+                            <a class="btn btn-outline-primary btn-sm" href="/">Login</a>
+                            <a class="btn btn-primary btn-sm" href="/register">Register</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </nav>
+
+            <div class="dashboard-shell">
+                <aside class="dashboard-shell__sidebar">
+                    <div id="dashboardSidebar" class="offcanvas-lg offcanvas-start dashboard-sidebar" tabindex="-1" aria-labelledby="dashboardSidebarLabel">
+                        <div class="offcanvas-header border-bottom">
+                            <h5 class="offcanvas-title" id="dashboardSidebarLabel">Navigation</h5>
+                            <button type="button" class="btn-close text-reset d-lg-none" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                        </div>
+                        <div class="offcanvas-body">
+                            <nav class="nav nav-pills flex-column gap-1" aria-label="Sidebar navigation">
+                                {% for group in sidebar_navigation or [] %}
+                                    {% set group_title = group["title"] if "title" in group else "" %}
+                                    {% set group_items = group["items"] if "items" in group else [] %}
+                                    {% if group_title %}
+                                        <div class="text-uppercase text-muted small fw-semibold px-2 mb-2">{{ group_title }}</div>
+                                    {% endif %}
+                                    {% for item in group_items %}
+                                        <a
+                                            class="nav-link"
+                                            href="{{ item["href"] if "href" in item else '#' }}"
+                                            data-dashboard-nav-link
+                                            {% if "target_type" in item and item["target_type"] == 'section' and "target" in item and item["target"] %}data-section-link="{{ item["target"] }}"{% endif %}
+                                            {% if "target_type" in item and item["target_type"] == 'user_section' and "target" in item and item["target"] %}data-user-section-link="{{ item["target"] }}"{% endif %}
+                                        >
+                                            {% if "icon" in item and item["icon"] %}
+                                                <i class="bi {{ item["icon"] }} me-2"></i>
+                                            {% endif %}
+                                            <span>{{ item["label"] if "label" in item else 'Item' }}</span>
+                                        </a>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="small text-muted px-2">No navigation items available.</div>
+                                {% endfor %}
+                            </nav>
+                        </div>
+                    </div>
+                </aside>
+
+                <main id="main-content" class="dashboard-main">
+                    <div class="dashboard-content-area">
+                        {% if success or error %}
+                            <section class="mb-4" aria-live="polite">
+                                {% if success %}
+                                    <div class="alert alert-success d-flex align-items-start gap-2" role="status">
+                                        <i class="bi bi-check-circle-fill"></i>
+                                        <div>
+                                            <div class="fw-semibold">Success</div>
+                                            <div>{{ success }}</div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                                {% if error %}
+                                    <div class="alert alert-danger d-flex align-items-start gap-2" role="alert">
+                                        <i class="bi bi-exclamation-triangle-fill"></i>
+                                        <div>
+                                            <div class="fw-semibold">Something went wrong</div>
+                                            <div>{{ error }}</div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </section>
+                        {% endif %}
+
+                        {% if admin_layout %}
+                            {% block admin_content %}{% endblock %}
+                        {% else %}
+                            {% block content %}{% endblock %}
+                        {% endif %}
+                    </div>
+                </main>
+            </div>
+
+            <div class="modal fade" id="bookDetailModal" tabindex="-1" aria-labelledby="bookDetailTitle" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="bookDetailTitle">Book Summary</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row g-4">
+                                <div class="col-md-4">
+                                    <div class="ratio ratio-3x4 bg-light rounded overflow-hidden">
+                                        <img id="bookDetailImage" class="w-100 h-100 object-fit-cover d-none" alt="Book cover">
+                                        <div id="bookDetailPlaceholder" class="d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-book fs-1 text-muted"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <p class="text-muted small mb-1">Title</p>
+                                    <h6 id="bookDetailTitleText" class="fw-semibold"></h6>
+                                    <p class="text-muted small mb-1 mt-3">Author</p>
+                                    <div id="bookDetailAuthor" class="fw-semibold"></div>
+                                    <p class="text-muted small mb-1 mt-3">Publisher</p>
+                                    <div id="bookDetailPublisher" class="fw-semibold"></div>
+                                    <div class="mt-3">
+                                        <a id="bookDetailPdfLink" class="btn btn-outline-primary btn-sm" target="_blank" rel="noopener">
+                                            <i class="bi bi-file-earmark-pdf me-1"></i>
+                                            Open PDF
+                                        </a>
+                                    </div>
+                                    <hr class="my-4">
+                                    <h6 class="fw-semibold">Summary</h6>
+                                    <div class="book-detail-summary-card">
+                                        <div id="bookDetailSummarySpinner" class="text-center my-3 d-none">
+                                            <div class="spinner-border text-primary" role="status">
+                                                <span class="visually-hidden">Loading summary</span>
+                                            </div>
+                                        </div>
+                                        <p id="bookDetailSummary" class="book-detail-summary-text text-muted mb-0">Select Summarize to generate the book summary.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="page-aurora" aria-hidden="true">
+            <span class="page-aurora__orb page-aurora__orb--one"></span>
+            <span class="page-aurora__orb page-aurora__orb--two"></span>
+            <span class="page-aurora__orb page-aurora__orb--three"></span>
+            <span class="page-aurora__grid"></span>
+        </div>
+
+        <div class="{{ 'app-layout-shell' if app_layout else 'site-shell' }}">
+            {% if not app_layout %}
+                <nav class="navbar">
+                    <a class="brand" href="{{ '/admin' if current_user and current_user.is_admin else ('/dashboard' if current_user else '/') }}">
+                        <span class="brand-mark"><i class="bi bi-book"></i></span>
+                        <span class="brand-copy">
+                            <strong>BookStore</strong>
+                            <small>Library OS</small>
+                        </span>
+                    </a>
+
+                    <div class="nav-actions">
+                        {% if current_user %}
+                            {% if current_user.is_admin %}
+                                <a class="nav-link" href="/admin">
+                                    <span class="nav-link-icon"><i class="bi bi-shield"></i></span>
+                                    <span>Admin Panel</span>
+                                </a>
+                            {% endif %}
+                            <span class="user-chip">
+                                <span class="user-chip-icon"><i class="bi bi-person-circle"></i></span>
+                                <span>{{ current_user.username }}</span>
+                            </span>
+                            <form method="post" action="/logout">
+                                <button class="btn btn-ghost btn-sm" type="submit">
+                                    <span>Logout</span>
+                                </button>
+                            </form>
+                        {% else %}
+                            <a class="nav-link" href="/">Login</a>
+                            <a class="btn btn-primary btn-sm" href="/register">Register</a>
+                        {% endif %}
+                    </div>
+                </nav>
+            {% endif %}
+
+            <main id="main-content" class="{{ 'app-layout-main' if app_layout else 'page-stack site-main' }}">
+                {% if not app_layout and (success or error) %}
+                    <section class="feedback-stack" aria-live="polite">
+                        {% if success %}
+                            <div class="alert alert-success" role="status" tabindex="-1">
+                                <span class="alert__icon"><i class="bi bi-check-circle"></i></span>
+                                <div class="alert__content">
+                                    <strong class="alert__title">Success</strong>
+                                    <span class="alert__message">{{ success }}</span>
+                                </div>
+                                <button class="alert__close" type="button" aria-label="Dismiss success message"><i class="bi bi-x"></i></button>
+                            </div>
+                        {% endif %}
+                        {% if error %}
+                            <div class="alert alert-danger" role="alert" tabindex="-1">
+                                <span class="alert__icon"><i class="bi bi-exclamation-triangle"></i></span>
+                                <div class="alert__content">
+                                    <strong class="alert__title">Something went wrong</strong>
+                                    <span class="alert__message">{{ error }}</span>
+                                </div>
+                                <button class="alert__close" type="button" aria-label="Dismiss error message"><i class="bi bi-x"></i></button>
+                            </div>
+                        {% endif %}
+                    </section>
+                {% endif %}
+
+                {{ self.content() }}
+            </main>
+        </div>
+    {% endif %}
+
+    <div id="toast-root" class="toast-root" aria-live="polite"></div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoYz1H4x5mGCd2Zgy5uZ16FUW64xUyJwYb6Z6Y2D8K0U3rg" crossorigin="anonymous"></script>
+    <script src="{{ url_for('static', path='js/notifications.js') }}"></script>
+    <script src="{{ url_for('static', path='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

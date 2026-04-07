@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-wrapper">
+        <div class="auth-panel auth-panel-left">
+            <div class="auth-panel-content">
+                <span class="auth-eyebrow">Reader Workspace</span>
+                <div class="auth-logo">
+                    <i class="bi bi-book-half"></i>
+                </div>
+                <h1 class="auth-panel-title">BookStore</h1>
+                <p class="auth-panel-subtitle">Your library operations hub for reading, organizing, and summarizing books.</p>
+
+                <div class="auth-features">
+                    <div class="feature-item">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Organize your books</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Create summaries</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Manage permissions</span>
+                    </div>
+                </div>
+
+                <div class="auth-trust-strip" aria-hidden="true">
+                    <span class="auth-trust-chip"><i class="bi bi-shield-lock"></i>Secure Session</span>
+                    <span class="auth-trust-chip"><i class="bi bi-lightning-charge"></i>Fast Access</span>
+                    <span class="auth-trust-chip"><i class="bi bi-stars"></i>AI Ready</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="auth-panel auth-panel-right">
+            <div class="auth-form-card">
+                <div class="auth-form-header">
+                    <h2>Welcome Back</h2>
+                    <p>Sign in to your BookStore account</p>
+                </div>
+
+                <form method="post" action="/login" class="auth-form" data-api-login data-redirect="/dashboard">
+                    <div class="form-group">
+                        <label for="username" class="form-label">
+                            <i class="bi bi-person-circle"></i>
+                            <span>Username or Email</span>
+                        </label>
+                        <input
+                            id="username"
+                            name="username"
+                            type="text"
+                            class="form-control"
+                            placeholder="Enter your username or email"
+                            value="{{ form_data.username if form_data else '' }}"
+                            autocomplete="username"
+                            autocapitalize="off"
+                            required
+                        >
+                        <small class="auth-input-hint">Use the username or email associated with your account.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password" class="form-label">
+                            <i class="bi bi-lock-fill"></i>
+                            <span>Password</span>
+                        </label>
+                        <input
+                            id="password"
+                            name="password"
+                            type="password"
+                            class="form-control"
+                            placeholder="Enter your password"
+                            autocomplete="current-password"
+                            required
+                        >
+                        <small class="auth-input-hint">Credentials are verified securely before access is granted.</small>
+                    </div>
+
+                    <div class="auth-meta-row">
+                        <span class="auth-security-note">
+                            <i class="bi bi-shield-check"></i>
+                            Protected sign-in
+                        </span>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg btn-full">
+                        <i class="bi bi-box-arrow-in-right"></i>
+                        Sign In
+                    </button>
+                </form>
+
+                <div class="auth-divider">
+                    <span>Don't have an account?</span>
+                </div>
+
+                <a href="/register" class="btn btn-secondary btn-lg btn-full">
+                    <i class="bi bi-person-plus"></i>
+                    Create Account
+                </a>
+
+                <p class="auth-footer-text">
+                    <i class="bi bi-info-circle"></i>
+                    Need access? Ask your administrator to provision your account.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

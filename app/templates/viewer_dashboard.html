@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block head_extra %}{% endblock %}
+
+{% block content %}
+<div class="viewer-app" data-user-app data-role="viewer" data-initial-section="browse">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Explore Our Collection</h1>
+            <p class="page-subtitle">Discover and read from our curated library of books.</p>
+        </div>
+        <div class="page-actions">
+            <a class="btn btn-outline-secondary btn-sm" href="/dashboard#browse" data-user-section-link="browse">
+                <i class="bi bi-search me-1"></i>
+                Browse
+            </a>
+            <a class="btn btn-outline-secondary btn-sm" href="/dashboard#summary" data-user-section-link="summary">
+                <i class="bi bi-stars me-1"></i>
+                Summaries
+            </a>
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <article class="stat-card">
+            <div class="stat-icon"><i class="bi bi-journal-bookmark"></i></div>
+            <div>
+                <p class="stat-label">Library Books</p>
+                <p class="stat-value" data-metric-total-books>0</p>
+            </div>
+        </article>
+        <article class="stat-card">
+            <div class="stat-icon"><i class="bi bi-file-earmark-pdf"></i></div>
+            <div>
+                <p class="stat-label">Readable PDFs</p>
+                <p class="stat-value" data-metric-pdf-books>0</p>
+            </div>
+        </article>
+        <article class="stat-card">
+            <div class="stat-icon"><i class="bi bi-building"></i></div>
+            <div>
+                <p class="stat-label">Publishers</p>
+                <p class="stat-value" data-metric-publishers>0</p>
+            </div>
+        </article>
+    </div>
+
+    <section class="viewer-section is-active" id="browse-section" data-user-section-panel="browse-section">
+        <div class="section-card">
+            <div class="section-card__header">
+                <div>
+                    <h2 class="section-title">Available Books</h2>
+                    <p class="text-muted">Search and open books you have access to.</p>
+                </div>
+                <div class="toolbar">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input class="form-control book-search" type="search" placeholder="Search books" aria-label="Search books">
+                    </div>
+                    <select id="sortBy" class="form-select form-select-sm" aria-label="Sort books">
+                        <option value="recent">Most recent</option>
+                        <option value="title">Title (A-Z)</option>
+                        <option value="author">Author (A-Z)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="book-grid" data-books-grid data-actions="view" data-book-scope="viewer" data-can-update="false" data-can-delete="false"></div>
+        </div>
+    </section>
+
+    <section class="viewer-section" id="summary-section" data-user-section-panel="summary-section">
+        <div class="section-card">
+            <div class="section-card__header">
+                <div>
+                    <h2 class="section-title">Summary Viewer</h2>
+                    <p class="text-muted">Generate summaries for books with PDFs.</p>
+                </div>
+            </div>
+            <form id="summaryBookForm" class="form-grid">
+                <div class="form-field">
+                    <span>Select Book</span>
+                    <select id="summaryBookSelect" name="book_id" required>
+                        <option value="">Choose a book</option>
+                    </select>
+                </div>
+                <button class="btn btn-outline-primary" type="submit">Generate Summary</button>
+            </form>
+
+            <div class="summary-output-card mt-4">
+                <div class="summary-output-card__header">
+                    <div>
+                        <h3 class="section-title">Latest Summary</h3>
+                        <p class="text-muted">Summaries appear here after generation.</p>
+                    </div>
+                    <span class="badge bg-light text-dark" data-summary-status>Idle</span>
+                </div>
+                <p class="summary-output" data-summary-output>Pick a book to generate its summary.</p>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
