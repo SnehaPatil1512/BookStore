@@ -815,11 +815,11 @@
 
   const openPdf = (dbId, hasPdf = true) => {
     if (!hasPdf) {
-      showToast("PDF not Available.", "error", "PDF Unavailable");
+      showToast("Read PDF is missing.", "error", "PDF Unavailable");
       return;
     }
     if (!dbId) {
-      showToast("PDF not Available.", "error", "PDF Unavailable");
+      showToast("Read PDF is missing.", "error", "PDF Unavailable");
       return;
     }
     window.open(`/api/books/read/${dbId}`, "_blank");
