@@ -162,3 +162,12 @@ Application goes live automatically
 > The CI/CD pipeline automates testing, validation, and deployment of the FastAPI application, ensuring that every code update is safely and instantly deployed to production without manual effort.
 
 
+Roll back commits
+
+* To revert the last commit
+- git revert HEAD
+- git push origin main
+
+* To revert the specfic commit
+- git log --oneline
+- git revert <commit_id>
